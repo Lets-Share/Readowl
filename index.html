@@ -17,7 +17,7 @@
             --bg-soft: #fdfcfb; 
             --card-light: #ffffff;
             --accent-soft: #f0e0c9; /* Soft tan/gold for selection state */
-            --primary-action: #14b8a6; /* Teal for high-contrast actions (Download) */
+            --primary-action: #14b8a6; /* Teal for high-contrast actions (Download/Action) */
             --text-dark: #1f2937; /* Dark charcoal */
             --text-medium: #5b5b5b; /* Medium grey for body text */
         }
@@ -77,6 +77,7 @@
             border-radius: 2rem;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             padding: 2rem 3rem;
+            min-height: 85vh; /* Ensure wrapper fills space */
         }
 
         /* Shelf Styling (The horizontal line effect) */
@@ -115,8 +116,6 @@
             line-height: 1.1;
             height: 2.2em; 
             overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             margin-bottom: 0.5rem;
         }
@@ -179,6 +178,7 @@
         let auth;
         let userId = null;
         let isAuthReady = false;
+        let currentPage = 'home'; // Default page is 'home'
 
         // Initialize Firebase
         if (Object.keys(firebaseConfig).length > 0) {
@@ -198,13 +198,14 @@
                     document.getElementById('profile-full-uid').textContent = userId; // Show full UID on hover
                     document.getElementById('auth-button-container').classList.add('hidden');
                     document.getElementById('profile-card').classList.remove('hidden');
-                    
                 } else {
                     userId = null;
                     document.getElementById('auth-button-container').classList.remove('hidden');
                     document.getElementById('profile-card').classList.add('hidden');
                 }
                 isAuthReady = true;
+                // Re-render current page to reflect auth status change (e.g., if needed for dynamic content)
+                renderPageContent(currentPage);
             });
 
             // Initial sign-in attempt
@@ -276,10 +277,10 @@
             }
         }
 
-        // --- Book Data and Renderer ---
+        // --- Book Data ---
 
         const books = [
-            // Programming Shelf (Max 5 shown in image)
+            // Programming Shelf 
             { id: 1, title: "9th New Math Book", author: "Parho.pk", coverUrl: "https://i.ibb.co/h7gY4J6/download-1.jpg", downloadLink: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", category: 'programming' },
             { id: 2, title: "The Art of Clear JavaScript", author: "Jane Doe", coverUrl: "https://placehold.co/400x600/facc15/1f2937?text=JavaScript", downloadLink: "#", category: 'programming' },
             { id: 3, title: "Deep Learning with Python", author: "Cal Newport", coverUrl: "https://placehold.co/400x600/06b6d4/ffffff?text=Python+DL", downloadLink: "#", category: 'programming' },
@@ -308,7 +309,33 @@
             return acc;
         }, {});
 
-        // Helper function to handle download
+
+        // --- Page Switching Logic ---
+
+        window.changePage = (pageName) => {
+            currentPage = pageName;
+            // Clear search bar when changing pages
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                 searchInput.value = '';
+            }
+            updateSidebarActiveState(pageName);
+            renderPageContent(pageName);
+        }
+
+        function updateSidebarActiveState(pageName) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === pageName) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+
+        // --- Shared Rendering Components ---
+
+        // Helper function to handle download/action
         window.downloadBook = (title, url) => {
             if (url === '#') {
                 showNotification(`Download link for "${title}" is a placeholder.`, 'warning');
@@ -318,8 +345,8 @@
             showNotification(`Starting download for "${title}"...`, 'success');
         }
 
-        // Helper function to render a single book card (shelf version with download button)
-        function renderBookCard(book) {
+        // Helper function to render a single book card
+        function renderBookCard(book, actionText = 'Download PDF', actionFunc = 'downloadBook') {
             return `
                 <div class="book-card-item">
                     <img src="${book.coverUrl}" alt="${book.title} Cover"
@@ -331,29 +358,29 @@
                         ${book.title}
                     </p>
 
-                    <!-- Download Button -->
+                    <!-- Action Button -->
                     <button
-                        onclick="downloadBook('${book.title.replace(/'/g, "\\'")}', '${book.downloadLink}')"
+                        onclick="${actionFunc}('${book.title.replace(/'/g, "\\'")}', '${book.downloadLink}')"
                         class="action-btn w-full mt-1 py-1 px-1 text-white text-[10px] font-semibold rounded-md tracking-wider"
                     >
-                        Download PDF
+                        ${actionText}
                     </button>
                 </div>
             `;
         }
         
         // Helper function to render a shelf section with manual horizontal scrolling
-        function renderShelf(title, booksArray) {
+        function renderShelf(title, booksArray, actionText = 'Full shelf') {
             if (booksArray.length === 0) return '';
-            const shelfContent = booksArray.map(renderBookCard).join('');
+            const shelfContent = booksArray.map(book => renderBookCard(book)).join('');
             
             return `
                 <section class="book-shelf">
                     <!-- Shelf Header -->
                     <header class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-text-dark">${title}</h3>
-                        <a href="#" class="text-xs text-primary-action hover:underline flex items-center" onclick="showNotification('Viewing full shelf for ${title}', 'warning')">
-                            Full shelf
+                        <a href="#" class="text-xs text-primary-action hover:underline flex items-center" onclick="showNotification('Viewing ${actionText} for ${title}', 'warning')">
+                            ${actionText}
                             <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
                         </a>
                     </header>
@@ -366,31 +393,28 @@
             `;
         }
 
-        /**
-         * Main function to dynamically render the entire library or search results.
-         * @param {Array<Object>|null} searchResults - An array of books if search is active, or null/undefined otherwise.
-         */
-        window.renderShelves = (searchResults = null) => {
-            const container = document.getElementById('library-sections');
-            
-            let shelfSections = [];
 
+        // --- Content Rendering Functions for Each Page ---
+
+        /**
+         * Renders the My Library content (Shelves or Search Results).
+         * @param {Array<Object>|null} searchResults - Filtered books array if search is active.
+         * @param {string} currentQuery - The current search query string.
+         */
+        function renderLibraryContent(searchResults = null, currentQuery = '') {
+            const container = document.getElementById('library-sections');
+            let shelfSections = [];
+            
             if (searchResults !== null) {
                 // --- Search mode ---
-                const query = document.getElementById('search-input').value;
-
                 if (searchResults.length > 0) {
-                     // Display results in a single shelf
-                     shelfSections.push(renderShelf(`Search Results for "${query}" (${searchResults.length})`, searchResults));
+                     shelfSections.push(renderShelf(`Search Results for "${currentQuery}" (${searchResults.length})`, searchResults));
                 } else {
-                     // No results found
-                     container.innerHTML = `<div class="text-center py-10 text-gray-500 text-xl">No books found matching "${query}".</div>`;
-                     lucide.createIcons();
-                     return;
+                     shelfSections.push(`<div class="text-center py-10 text-gray-500 text-xl">No books found matching "${currentQuery}".</div>`);
                 }
 
             } else {
-                // --- Default mode ---
+                // --- Default Library mode ---
                 shelfSections = [
                     renderShelf("Programming & Tech", groupedBooks.programming || []),
                     renderShelf("Fiction & Classics", groupedBooks.fiction || []),
@@ -398,33 +422,190 @@
                 ];
             }
             
-            container.innerHTML = shelfSections.join('');
-            lucide.createIcons(); // Re-create icons for new elements
+            // Render the title and the dynamic shelves
+            container.innerHTML = `<h1 class="text-3xl font-bold mb-8">My Library</h1>` + `<div class="space-y-12">${shelfSections.join('')}</div>`;
+            lucide.createIcons(); 
         }
 
         /**
          * Handles the input event on the search bar, filtering and re-rendering the shelves.
          */
         window.handleSearch = () => {
-            const query = document.getElementById('search-input').value.trim().toLowerCase();
+            const searchInput = document.getElementById('search-input');
+            if (!searchInput) return; 
+            
+            const query = searchInput.value.trim().toLowerCase();
             
             if (query.length === 0) {
-                // If query is empty, show default shelves
-                window.renderShelves(null);
+                // When search is cleared, revert to default library view
+                renderLibraryContent(null); 
                 return;
             }
             
-            // Filter the global books array based on title or author
+            // Filter the global books array
             const filteredBooks = books.filter(book => {
                 const titleMatch = book.title.toLowerCase().includes(query);
                 const authorMatch = book.author.toLowerCase().includes(query);
                 return titleMatch || authorMatch;
             });
             
-            // Render the search results
-            window.renderShelves(filteredBooks);
+            // Render the search results, passing the query so the shelf title is accurate
+            renderLibraryContent(filteredBooks, query); 
         }
 
+        function renderHomeContent() {
+            const container = document.getElementById('library-sections');
+            
+            // Welcome Banner
+            const welcomeBanner = `
+                <div class="bg-primary-action text-white p-6 rounded-2xl mb-12 shadow-lg">
+                    <div class="flex items-center">
+                        <i data-lucide="sparkles" class="w-8 h-8 mr-4"></i>
+                        <div>
+                            <h2 class="text-2xl font-bold">Welcome back, Reader!</h2>
+                            <p class="text-sm opacity-90 mt-1">Discover new titles or dive back into your favorites.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Featured/Trending Shelf
+            const trendingBooks = [books[10], books[1], books[6], books[8], books[3], books[7]]; // Mix of categories
+            const trendingShelf = renderShelf("Trending Now", trendingBooks, "View all trends");
+
+            // Recommended for You (Simulated)
+            const recommendedBooks = [books[5], books[9], books[14], books[2], books[11]];
+            const recommendedShelf = renderShelf("Recommended for You", recommendedBooks, "Customize recommendations");
+
+            container.innerHTML = `
+                <h1 class="text-3xl font-bold mb-8">Home</h1>
+                ${welcomeBanner}
+                ${trendingShelf}
+                ${recommendedShelf}
+            `;
+            lucide.createIcons();
+        }
+
+        function renderShopContent() {
+            const container = document.getElementById('library-sections');
+            
+            // Shop Header
+            const shopHeader = `
+                <h1 class="text-3xl font-bold mb-8">Book Shop</h1>
+                <p class="text-lg text-text-medium mb-10">Browse our latest releases and bestselling collections.</p>
+            `;
+            
+            // New Releases (using a new set of data just for the shop feel)
+            const newReleases = [
+                { id: 20, title: "The Silent Watcher", author: "Anya Sharma", coverUrl: "https://placehold.co/400x600/374151/ffffff?text=Mystery", downloadLink: "#", category: 'fiction' },
+                { id: 21, title: "Quantum Computing Explained", author: "Dr. L. Chen", coverUrl: "https://placehold.co/400x600/059669/ffffff?text=Tech+Guide", downloadLink: "#", category: 'programming' },
+                { id: 22, title: "Culinary History of Rome", author: "E. Rossi", coverUrl: "https://placehold.co/400x600/99f6e4/1f2937?text=Food+History", downloadLink: "#", category: 'history' },
+                ...books.slice(0, 3) // Add a few from the existing list
+            ];
+
+            const releasesShelf = newReleases.map(book => renderBookCard(book, 'Buy Now', 'showBuyDetails')).join('');
+            
+            // Shop Categories Grid
+            const categories = ['Fiction', 'Technology', 'Science', 'Biography', 'Self-Help', 'Children'];
+            const categoryGrid = categories.map(cat => `
+                <div onclick="showNotification('Navigating to ${cat} category', 'info')" class="flex items-center justify-center p-4 bg-gray-50 border border-gray-200 rounded-xl hover:bg-accent-soft transition cursor-pointer shadow-sm">
+                    <i data-lucide="folder-open" class="w-6 h-6 mr-3 text-amber-600"></i>
+                    <span class="font-medium">${cat}</span>
+                </div>
+            `).join('');
+
+
+            container.innerHTML = `
+                ${shopHeader}
+                
+                <h3 class="text-xl font-semibold mb-4">New Releases</h3>
+                <div class="book-shelf-container mb-12">${releasesShelf}</div>
+
+                <h3 class="text-xl font-semibold mb-4">Browse Categories</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    ${categoryGrid}
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        window.showBuyDetails = (title) => {
+            showNotification(`Purchase flow started for "${title}".`, 'info');
+        }
+
+        function renderNewsContent() {
+            const container = document.getElementById('library-sections');
+            
+            // Mock News Articles
+            const newsArticles = [
+                { title: "Gemini-2.5-Flash Writes Best-Seller: AI Author Sparks Debate", date: "Oct 25", source: "TechDigest", icon: "megaphone", link: "#" },
+                { title: "Classic Literature Sees Resurgence in Digital Formats", date: "Oct 24", source: "Publishers Weekly", icon: "book-open", link: "#" },
+                { title: "The Future of E-Readers: Color Screens and Flexible Displays", date: "Oct 23", source: "Gadget Central", icon: "layout-dashboard", link: "#" },
+                { title: "Interview with Sci-Fi Author Frank Herbert (Archived)", date: "Oct 22", source: "History Vault", icon: "user", link: "#" },
+            ];
+
+            const articlesHTML = newsArticles.map(article => `
+                <div onclick="showNotification('Opening article: ${article.title}', 'info')" class="flex items-start p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition cursor-pointer border border-gray-100">
+                    <i data-lucide="${article.icon}" class="w-6 h-6 mr-4 text-primary-action flex-shrink-0 mt-1"></i>
+                    <div>
+                        <h4 class="font-semibold text-text-dark">${article.title}</h4>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <span class="mr-2">${article.source}</span>
+                            <span class="text-gray-400">•</span>
+                            <span class="ml-2">${article.date}</span>
+                        </p>
+                    </div>
+                </div>
+            `).join('');
+
+
+            container.innerHTML = `
+                <h1 class="text-3xl font-bold mb-8">Reading News</h1>
+                <p class="text-lg text-text-medium mb-10">Stay updated with the world of books and technology.</p>
+                
+                <div class="space-y-4">
+                    ${articlesHTML}
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        /**
+         * Main function to dynamically render the page content based on the current state.
+         */
+        window.renderPageContent = (pageName) => {
+            const pageHeader = document.getElementById('page-header');
+            
+            // Clear dynamic content area
+            document.getElementById('library-sections').innerHTML = ''; 
+            
+            // Show/Hide Page Header (Tabs and Search Bar)
+            if (pageName === 'library') {
+                 // Ensure search bar value is cleared when landing on the page fresh
+                 const searchInput = document.getElementById('search-input');
+                 if (searchInput) searchInput.value = '';
+                 
+                 pageHeader.classList.remove('hidden');
+                 renderLibraryContent(); // Renders default library shelves
+            } else {
+                 pageHeader.classList.add('hidden');
+                 // Render other pages (Home, Shop, News)
+                 switch (pageName) {
+                    case 'home':
+                        renderHomeContent();
+                        break;
+                    case 'shop':
+                        renderShopContent();
+                        break;
+                    case 'news':
+                        renderNewsContent();
+                        break;
+                 }
+            }
+
+            lucide.createIcons();
+        }
+        
         // --- Utility Functions (Notification) ---
 
         /**
@@ -462,7 +643,9 @@
         // Setup the initial rendering when the window loads
         window.onload = () => {
             lucide.createIcons(); 
-            window.renderShelves(); // Initial render using the updated function name
+            // The initial page is set to 'home', so we render it and update the sidebar state.
+            updateSidebarActiveState('home');
+            renderPageContent('home'); 
         };
     </script>
 </head>
@@ -481,10 +664,11 @@
             <!-- Navigation Links -->
             <nav>
                 <ul class="space-y-2 text-text-medium text-sm">
-                    <li><div class="nav-item" onclick="showNotification('Navigating to Home', 'info')"><i data-lucide="home" class="w-5 h-5 mr-3"></i><span>Home</span></div></li>
-                    <li><div class="nav-item active"><i data-lucide="book-open-text" class="w-5 h-5 mr-3"></i><span>My library</span></div></li>
-                    <li><div class="nav-item" onclick="showNotification('Navigating to Shop', 'info')"><i data-lucide="shopping-bag" class="w-5 h-5 mr-3"></i><span>Shop</span></div></li>
-                    <li><div class="nav-item" onclick="showNotification('Navigating to News', 'info')"><i data-lucide="newspaper" class="w-5 h-5 mr-3"></i><span>News</span></div></li>
+                    <!-- Added data-page attributes for easier navigation control -->
+                    <li><div class="nav-item active" data-page="home" onclick="changePage('home')"><i data-lucide="home" class="w-5 h-5 mr-3"></i><span>Home</span></div></li>
+                    <li><div class="nav-item" data-page="library" onclick="changePage('library')"><i data-lucide="book-open-text" class="w-5 h-5 mr-3"></i><span>My library</span></div></li>
+                    <li><div class="nav-item" data-page="shop" onclick="changePage('shop')"><i data-lucide="shopping-bag" class="w-5 h-5 mr-3"></i><span>Shop</span></div></li>
+                    <li><div class="nav-item" data-page="news" onclick="changePage('news')"><i data-lucide="newspaper" class="w-5 h-5 mr-3"></i><span>News</span></div></li>
                 </ul>
             </nav>
         </div>
@@ -515,7 +699,7 @@
             <div id="profile-card" class="flex items-center p-2 rounded-xl hover:bg-gray-50 transition cursor-pointer hidden group relative">
                 <img src="https://placehold.co/40x40/f0e0c9/1f2937?text=U" alt="User Profile" class="w-10 h-10 rounded-full object-cover mr-3 border border-gray-200"/>
                 <div>
-                    <span class="text-sm font-medium block" id="profile-name">Stephan</span>
+                    <span class="text-sm font-medium block" id="profile-name">User ID</span>
                     <!-- Full UID tooltip/display -->
                     <p id="profile-full-uid" class="text-[10px] text-gray-500 truncate" title="User ID">User ID</p>
                 </div>
@@ -532,8 +716,8 @@
         <!-- Central Content Wrapper (White Background) -->
         <div class="content-wrapper">
 
-            <!-- Top Header: Tabs and Search Bar -->
-            <header class="mb-10">
+            <!-- STABLE PAGE HEADER: Tabs and Search Bar (Hidden by default, shown only on 'library' page) -->
+            <header id="page-header" class="mb-10 hidden">
                 <!-- Tabs -->
                 <div class="flex space-x-4 border-b border-gray-100 mb-6 nav-tabs">
                     <button class="px-4 py-2 text-sm font-semibold border-b-2 border-primary-action text-primary-action">
@@ -547,15 +731,16 @@
                 <!-- Search Bar -->
                 <div class="search-bar flex items-center bg-gray-50 rounded-xl p-3 border border-gray-100 shadow-inner">
                     <i data-lucide="search" class="w-5 h-5 text-gray-400 mr-3"></i>
+                    <!-- This input is now permanent, ensuring smooth typing and focus -->
                     <input type="text" placeholder="Search in My library (e.g., Python, Jane Doe)" id="search-input"
                            class="w-full bg-transparent focus:outline-none text-text-dark placeholder-gray-400 text-base"
-                           oninput="handleSearch()"> <!-- UPDATED: Calls the new handleSearch function -->
+                           oninput="handleSearch()">
                 </div>
             </header>
-
-            <!-- Library Shelves Sections -->
+            
+            <!-- Dynamic Content Area -->
             <div id="library-sections" class="space-y-12">
-                <!-- Shelves will be injected here by JavaScript -->
+                <!-- Page content (Home, Library, Shop, News) will be injected here by JavaScript -->
             </div>
             
         </div>
