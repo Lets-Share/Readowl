@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Readowl Digital Library</title>
     
-    <!-- Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Lucide Icons --><script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         /* --- Custom styles to match the Soft Cream/Neomorphic app theme --- */
@@ -100,8 +102,7 @@
         .book-card img {
             width: 100%;
             height: auto;
-            /* Added rounded-lg here for consistency */
-            border-radius: 0.5rem; /* This was already here */
+            border-radius: 0.5rem; 
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s;
         }
@@ -114,6 +115,8 @@
             line-height: 1.1;
             height: 2.2em; 
             overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             margin-bottom: 0.5rem;
         }
@@ -196,16 +199,12 @@
                     document.getElementById('auth-button-container').classList.add('hidden');
                     document.getElementById('profile-card').classList.remove('hidden');
                     
-                    // Fetch user-specific reading data here if needed, but for now we'll stick to general shelves.
-
                 } else {
                     userId = null;
                     document.getElementById('auth-button-container').classList.remove('hidden');
                     document.getElementById('profile-card').classList.add('hidden');
                 }
                 isAuthReady = true;
-                // Re-render the library after auth status is confirmed (optional but good practice)
-                // renderLibrary(); 
             });
 
             // Initial sign-in attempt
@@ -223,7 +222,7 @@
             })();
         }
 
-        // --- Auth Modal Handlers ---
+        // --- Auth Modal Handlers (omitted for brevity) ---
 
         window.openAuthModal = (mode) => {
             document.getElementById('auth-mode').textContent = mode === 'login' ? 'Log In' : 'Sign Up';
@@ -281,7 +280,7 @@
 
         const books = [
             // Programming Shelf (Max 5 shown in image)
-            { id: 1, title: "9th New Math Book", author: "Parho.pk", coverUrl: "images/imgi_6_img.png", downloadLink: "https://drive.google.com/file/d/1aThALXeBpho1MPwWTgjPXqngcQ6o8Rw0/view?usp=sharing", category: 'programming' },
+            { id: 1, title: "9th New Math Book", author: "Parho.pk", coverUrl: "https://i.ibb.co/h7gY4J6/download-1.jpg", downloadLink: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", category: 'programming' },
             { id: 2, title: "The Art of Clear JavaScript", author: "Jane Doe", coverUrl: "https://placehold.co/400x600/facc15/1f2937?text=JavaScript", downloadLink: "#", category: 'programming' },
             { id: 3, title: "Deep Learning with Python", author: "Cal Newport", coverUrl: "https://placehold.co/400x600/06b6d4/ffffff?text=Python+DL", downloadLink: "#", category: 'programming' },
             { id: 4, title: "UX Strategy Fundamentals", author: "R. A. Smith", coverUrl: "https://placehold.co/400x600/3d3d3d/ffffff?text=UX+Design", downloadLink: "#", category: 'programming' },
@@ -302,7 +301,7 @@
             { id: 15, title: "The Ottoman Empire", author: "W. McKinney", coverUrl: "https://placehold.co/400x600/0284c7/ffffff?text=Ottoman", downloadLink: "#", category: 'history' },
         ];
         
-        // Groups books by their category (No longer duplicating for infinite scroll)
+        // Groups books by their category
         const groupedBooks = books.reduce((acc, book) => {
             acc[book.category] = acc[book.category] || [];
             acc[book.category].push(book);
@@ -324,7 +323,7 @@
             return `
                 <div class="book-card-item">
                     <img src="${book.coverUrl}" alt="${book.title} Cover"
-                         class="w-full h-auto object-cover rounded-lg"  // Added rounded-lg here
+                         class="w-full h-auto object-cover rounded-lg"
                          onerror="this.onerror=null;this.src='https://placehold.co/400x600/e0d9cd/5b5b5b?text=Book';"
                     >
                     
@@ -332,7 +331,8 @@
                         ${book.title}
                     </p>
 
-                    <!-- Download Button --><button
+                    <!-- Download Button -->
+                    <button
                         onclick="downloadBook('${book.title.replace(/'/g, "\\'")}', '${book.downloadLink}')"
                         class="action-btn w-full mt-1 py-1 px-1 text-white text-[10px] font-semibold rounded-md tracking-wider"
                     >
@@ -349,7 +349,8 @@
             
             return `
                 <section class="book-shelf">
-                    <!-- Shelf Header --><header class="flex justify-between items-center mb-4">
+                    <!-- Shelf Header -->
+                    <header class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-text-dark">${title}</h3>
                         <a href="#" class="text-xs text-primary-action hover:underline flex items-center" onclick="showNotification('Viewing full shelf for ${title}', 'warning')">
                             Full shelf
@@ -357,7 +358,8 @@
                         </a>
                     </header>
                     
-                    <!-- Books on the Shelf (Manual Horizontal Scroll Container) --><div class="book-shelf-container">
+                    <!-- Books on the Shelf (Manual Horizontal Scroll Container) -->
+                    <div class="book-shelf-container">
                         ${shelfContent}
                     </div>
                 </section>
@@ -365,23 +367,62 @@
         }
 
         /**
-         * Main function to dynamically render the entire library.
+         * Main function to dynamically render the entire library or search results.
+         * @param {Array<Object>|null} searchResults - An array of books if search is active, or null/undefined otherwise.
          */
-        window.renderLibrary = () => {
+        window.renderShelves = (searchResults = null) => {
             const container = document.getElementById('library-sections');
             
-            const shelfSections = [
-                renderShelf("Programming & Tech", groupedBooks.programming || []),
-                renderShelf("Fiction & Classics", groupedBooks.fiction || []),
-                renderShelf("History & Science", groupedBooks.history || [])
-            ];
+            let shelfSections = [];
+
+            if (searchResults !== null) {
+                // --- Search mode ---
+                const query = document.getElementById('search-input').value;
+
+                if (searchResults.length > 0) {
+                     // Display results in a single shelf
+                     shelfSections.push(renderShelf(`Search Results for "${query}" (${searchResults.length})`, searchResults));
+                } else {
+                     // No results found
+                     container.innerHTML = `<div class="text-center py-10 text-gray-500 text-xl">No books found matching "${query}".</div>`;
+                     lucide.createIcons();
+                     return;
+                }
+
+            } else {
+                // --- Default mode ---
+                shelfSections = [
+                    renderShelf("Programming & Tech", groupedBooks.programming || []),
+                    renderShelf("Fiction & Classics", groupedBooks.fiction || []),
+                    renderShelf("History & Science", groupedBooks.history || [])
+                ];
+            }
             
             container.innerHTML = shelfSections.join('');
             lucide.createIcons(); // Re-create icons for new elements
         }
 
-        window.showBookDetails = (title) => {
-            showNotification(`Details for "${title}" would open here.`, 'info');
+        /**
+         * Handles the input event on the search bar, filtering and re-rendering the shelves.
+         */
+        window.handleSearch = () => {
+            const query = document.getElementById('search-input').value.trim().toLowerCase();
+            
+            if (query.length === 0) {
+                // If query is empty, show default shelves
+                window.renderShelves(null);
+                return;
+            }
+            
+            // Filter the global books array based on title or author
+            const filteredBooks = books.filter(book => {
+                const titleMatch = book.title.toLowerCase().includes(query);
+                const authorMatch = book.author.toLowerCase().includes(query);
+                return titleMatch || authorMatch;
+            });
+            
+            // Render the search results
+            window.renderShelves(filteredBooks);
         }
 
         // --- Utility Functions (Notification) ---
@@ -421,20 +462,24 @@
         // Setup the initial rendering when the window loads
         window.onload = () => {
             lucide.createIcons(); 
-            window.renderLibrary();
+            window.renderShelves(); // Initial render using the updated function name
         };
     </script>
 </head>
 <body>
-    <!-- 1. FIXED LEFT SIDEBAR --><aside id="sidebar" class="p-6">
+    <!-- 1. FIXED LEFT SIDEBAR -->
+    <aside id="sidebar" class="p-6">
         
-        <!-- Top Section: Logo and Navigation --><div>
-            <!-- Logo: Readowl --><div class="flex items-center mb-10 pl-2">
+        <!-- Top Section: Logo and Navigation -->
+        <div>
+            <!-- Logo: Readowl -->
+            <div class="flex items-center mb-10 pl-2">
                 <i data-lucide="book-open-check" class="w-8 h-8 mr-2 text-amber-500"></i>
                 <span class="text-xl font-extrabold text-text-dark">Readowl</span>
             </div>
 
-            <!-- Navigation Links --><nav>
+            <!-- Navigation Links -->
+            <nav>
                 <ul class="space-y-2 text-text-medium text-sm">
                     <li><div class="nav-item" onclick="showNotification('Navigating to Home', 'info')"><i data-lucide="home" class="w-5 h-5 mr-3"></i><span>Home</span></div></li>
                     <li><div class="nav-item active"><i data-lucide="book-open-text" class="w-5 h-5 mr-3"></i><span>My library</span></div></li>
@@ -444,8 +489,10 @@
             </nav>
         </div>
 
-        <!-- Bottom Section: Continue Reading and Profile/Auth --><div class="pb-4">
-            <!-- Continue Reading Card --><div class="p-3 bg-accent-soft rounded-2xl mb-4 shadow-inner-lg">
+        <!-- Bottom Section: Continue Reading and Profile/Auth -->
+        <div class="pb-4">
+            <!-- Continue Reading Card -->
+            <div class="p-3 bg-accent-soft rounded-2xl mb-4 shadow-inner-lg">
                  <h4 class="text-sm font-semibold text-text-dark mb-2">Continue reading</h4>
                  <div class="flex items-center space-x-2">
                     <img src="https://placehold.co/400x600/14b8a6/ffffff?text=UX+Design" alt="Book Cover" class="w-8 h-12 object-cover rounded-md shadow-md"/>
@@ -456,17 +503,21 @@
                  </div>
             </div>
 
-            <!-- Authentication State --><!-- 1. Login/Sign Up Button (Visible if not logged in) --><div id="auth-button-container" class="mt-4">
+            <!-- Authentication State -->
+            <!-- 1. Login/Sign Up Button (Visible if not logged in) -->
+            <div id="auth-button-container" class="mt-4">
                  <button onclick="openAuthModal('login')" class="w-full action-btn py-2 text-white font-semibold rounded-xl text-sm transition">
                     Login / Sign Up
                  </button>
             </div>
 
-            <!-- 2. User Profile Card (Visible if logged in) --><div id="profile-card" class="flex items-center p-2 rounded-xl hover:bg-gray-50 transition cursor-pointer hidden group relative">
+            <!-- 2. User Profile Card (Visible if logged in) -->
+            <div id="profile-card" class="flex items-center p-2 rounded-xl hover:bg-gray-50 transition cursor-pointer hidden group relative">
                 <img src="https://placehold.co/40x40/f0e0c9/1f2937?text=U" alt="User Profile" class="w-10 h-10 rounded-full object-cover mr-3 border border-gray-200"/>
                 <div>
                     <span class="text-sm font-medium block" id="profile-name">Stephan</span>
-                    <!-- Full UID tooltip/display --><p id="profile-full-uid" class="text-[10px] text-gray-500 truncate" title="User ID">User ID</p>
+                    <!-- Full UID tooltip/display -->
+                    <p id="profile-full-uid" class="text-[10px] text-gray-500 truncate" title="User ID">User ID</p>
                 </div>
                 <button onclick="handleLogout()" class="ml-auto text-red-500 hover:text-red-700 p-1 rounded-full transition">
                     <i data-lucide="log-out" class="w-5 h-5"></i>
@@ -475,12 +526,16 @@
         </div>
     </aside>
 
-    <!-- 2. MAIN LIBRARY VIEW (Scrollable) --><main id="main-library">
+    <!-- 2. MAIN LIBRARY VIEW (Scrollable) -->
+    <main id="main-library">
         
-        <!-- Central Content Wrapper (White Background) --><div class="content-wrapper">
+        <!-- Central Content Wrapper (White Background) -->
+        <div class="content-wrapper">
 
-            <!-- Top Header: Tabs and Search Bar --><header class="mb-10">
-                <!-- Tabs --><div class="flex space-x-4 border-b border-gray-100 mb-6 nav-tabs">
+            <!-- Top Header: Tabs and Search Bar -->
+            <header class="mb-10">
+                <!-- Tabs -->
+                <div class="flex space-x-4 border-b border-gray-100 mb-6 nav-tabs">
                     <button class="px-4 py-2 text-sm font-semibold border-b-2 border-primary-action text-primary-action">
                         Shelves
                     </button>
@@ -489,20 +544,24 @@
                     </button>
                 </div>
                 
-                <!-- Search Bar --><div class="search-bar flex items-center bg-gray-50 rounded-xl p-3 border border-gray-100 shadow-inner">
+                <!-- Search Bar -->
+                <div class="search-bar flex items-center bg-gray-50 rounded-xl p-3 border border-gray-100 shadow-inner">
                     <i data-lucide="search" class="w-5 h-5 text-gray-400 mr-3"></i>
-                    <input type="text" placeholder="Search in My library" id="search-input"
+                    <input type="text" placeholder="Search in My library (e.g., Python, Jane Doe)" id="search-input"
                            class="w-full bg-transparent focus:outline-none text-text-dark placeholder-gray-400 text-base"
-                           oninput="showNotification('Search is running locally on the displayed books.', 'info')">
+                           oninput="handleSearch()"> <!-- UPDATED: Calls the new handleSearch function -->
                 </div>
             </header>
 
-            <!-- Library Shelves Sections --><div id="library-sections" class="space-y-12">
-                <!-- Shelves will be injected here by JavaScript --></div>
+            <!-- Library Shelves Sections -->
+            <div id="library-sections" class="space-y-12">
+                <!-- Shelves will be injected here by JavaScript -->
+            </div>
             
         </div>
 
-        <!-- 3. AUTH MODAL (Hidden by default) --><div id="auth-modal-overlay" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-40 hidden" onclick="closeAuthModal()"></div>
+        <!-- 3. AUTH MODAL (Hidden by default) -->
+        <div id="auth-modal-overlay" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-40 hidden" onclick="closeAuthModal()"></div>
         <div id="auth-modal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
             <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm transform transition-all duration-300">
                 <div class="flex justify-between items-center mb-6">
@@ -536,7 +595,8 @@
             </div>
         </div>
 
-        <!-- 4. Custom Notification/Message Box --><div id="notification"
+        <!-- 4. Custom Notification/Message Box -->
+        <div id="notification"
              class="fixed bottom-6 right-6 text-white px-6 py-3 rounded-xl shadow-2xl font-semibold transition-all duration-500 transform translate-y-full opacity-0 hidden z-50">
             Notification Message
         </div>
