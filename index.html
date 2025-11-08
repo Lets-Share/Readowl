@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Readowl Digital Library</title>
     
-    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
@@ -27,10 +25,10 @@
             color: var(--text-dark);
             display: flex;
             min-height: 100vh;
-            overflow: hidden; 
+            overflow-x: hidden; /* Prevent horizontal scroll from sidebar toggle */
         }
 
-        /* Sidebar Styling */
+        /* --- Sidebar Styling (Responsive) --- */
         #sidebar {
             width: 250px; 
             flex-shrink: 0;
@@ -40,14 +38,23 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            position: fixed; 
+            height: 100vh;
+            z-index: 30; 
+            left: 0;
+            top: 0;
+            transform: translateX(0); 
+            transition: transform 0.3s ease-in-out;
         }
-
-        /* Main Library Area */
+        
+        /* Main Library Area (Responsive) */
         #main-library {
             flex-grow: 1;
             padding: 2rem;
             overflow-y: auto; 
             max-height: 100vh;
+            margin-left: 250px; 
+            transition: margin-left 0.3s ease-in-out; 
         }
         
         /* Navigation Links and Selected State */
@@ -71,16 +78,16 @@
             color: var(--text-dark);
         }
 
-        /* Content Wrapper (The 'screen' area in the image) */
+        /* Content Wrapper */
         .content-wrapper {
             background-color: var(--card-light);
             border-radius: 2rem;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             padding: 2rem 3rem;
-            min-height: 85vh; /* Ensure wrapper fills space */
+            min-height: 90vh; 
         }
 
-        /* Shelf Styling (The horizontal line effect) */
+        /* Shelf Styling */
         .book-shelf {
             position: relative;
             padding-bottom: 2.5rem; 
@@ -99,7 +106,7 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); 
         }
         
-        /* Book Card Styling (Minimalist) */
+        /* Book Card Styling */
         .book-card img {
             width: 100%;
             height: auto;
@@ -120,7 +127,7 @@
             margin-bottom: 0.5rem;
         }
         
-        /* Action Button (Teal accent for Download) */
+        /* Action Button */
         .action-btn {
             background-color: var(--primary-action);
             transition: all 0.3s ease;
@@ -129,34 +136,70 @@
             background-color: #0d9488;
         }
 
-        /* --- Manual Horizontal Scrolling Container --- */
+        /* Manual Horizontal Scrolling Container */
         .book-shelf-container {
             display: flex;
-            overflow-x: auto; /* Enable manual horizontal scrolling */
-            padding-bottom: 10px; /* Space for scroll bar on some systems */
-            /* Hide scrollbar for a cleaner look while keeping functionality */
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            overflow-x: auto; 
+            padding-bottom: 10px; 
+            -ms-overflow-style: none;  
+            scrollbar-width: none;  
         }
-        
         .book-shelf-container::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
+            display: none; 
         }
-
-        /* Fixed width for scroll consistency */
         .book-card-item {
             flex-shrink: 0;
             width: 110px; 
-            margin-right: 24px; /* gap-6 equivalent */
+            margin-right: 24px; 
             text-align: center;
         }
+        
+        /* Mobile Navigation Toggle Button */
+        #mobile-nav-toggle {
+            display: none; 
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 40; 
+            background-color: var(--primary-action);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Overlay for Sidebar on Mobile */
+        #sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 20;
+            display: none;
+        }
 
-        /* Mobile Adjustments */
+        /* --- Mobile Adjustments (Max-width 1024px) --- */
         @media (max-width: 1024px) {
-            #sidebar { display: none; }
-            body { flex-direction: column; overflow-y: auto; }
-            #main-library { padding: 1rem; }
-            .content-wrapper { padding: 1.5rem; border-radius: 1.5rem; }
+            #main-library { 
+                margin-left: 0;
+                padding: 1rem 1rem 4rem 1rem; 
+            }
+            
+            #sidebar { 
+                transform: translateX(-100%); 
+            }
+            #sidebar.active-mobile { 
+                transform: translateX(0); 
+            }
+
+            #mobile-nav-toggle {
+                display: block; 
+            }
+
+            .content-wrapper { 
+                padding: 1.5rem; 
+                border-radius: 1.5rem; 
+                margin-top: 50px; 
+            }
         }
     </style>
     
@@ -204,7 +247,6 @@
                     document.getElementById('profile-card').classList.add('hidden');
                 }
                 isAuthReady = true;
-                // Re-render current page to reflect auth status change (e.g., if needed for dynamic content)
                 renderPageContent(currentPage);
             });
 
@@ -281,7 +323,7 @@
 
         const books = [
             // Programming Shelf 
-            { id: 1, title: "9th New Math Book", author: "Parho.pk", coverUrl: "https://i.ibb.co/h7gY4J6/download-1.jpg", downloadLink: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", category: 'programming' },
+            { id: 1, title: "9th New Math Book", author: "Parho.pk", coverUrl: "images/imgi_6_img.png", downloadLink: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", category: 'programming' },
             { id: 2, title: "The Art of Clear JavaScript", author: "Jane Doe", coverUrl: "https://placehold.co/400x600/facc15/1f2937?text=JavaScript", downloadLink: "#", category: 'programming' },
             { id: 3, title: "Deep Learning with Python", author: "Cal Newport", coverUrl: "https://placehold.co/400x600/06b6d4/ffffff?text=Python+DL", downloadLink: "#", category: 'programming' },
             { id: 4, title: "UX Strategy Fundamentals", author: "R. A. Smith", coverUrl: "https://placehold.co/400x600/3d3d3d/ffffff?text=UX+Design", downloadLink: "#", category: 'programming' },
@@ -321,6 +363,14 @@
             }
             updateSidebarActiveState(pageName);
             renderPageContent(pageName);
+            
+            // Hide sidebar on mobile after navigating
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.remove('active-mobile');
+                overlay.style.display = 'none';
+            }
         }
 
         function updateSidebarActiveState(pageName) {
@@ -335,7 +385,7 @@
 
         // --- Shared Rendering Components ---
 
-        // Helper function to handle download/action
+        // Helper function to handle book download/action
         window.downloadBook = (title, url) => {
             if (url === '#') {
                 showNotification(`Download link for "${title}" is a placeholder.`, 'warning');
@@ -358,7 +408,6 @@
                         ${book.title}
                     </p>
 
-                    <!-- Action Button -->
                     <button
                         onclick="${actionFunc}('${book.title.replace(/'/g, "\\'")}', '${book.downloadLink}')"
                         class="action-btn w-full mt-1 py-1 px-1 text-white text-[10px] font-semibold rounded-md tracking-wider"
@@ -376,7 +425,6 @@
             
             return `
                 <section class="book-shelf">
-                    <!-- Shelf Header -->
                     <header class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-text-dark">${title}</h3>
                         <a href="#" class="text-xs text-primary-action hover:underline flex items-center" onclick="showNotification('Viewing ${actionText} for ${title}', 'warning')">
@@ -385,7 +433,6 @@
                         </a>
                     </header>
                     
-                    <!-- Books on the Shelf (Manual Horizontal Scroll Container) -->
                     <div class="book-shelf-container">
                         ${shelfContent}
                     </div>
@@ -396,11 +443,6 @@
 
         // --- Content Rendering Functions for Each Page ---
 
-        /**
-         * Renders the My Library content (Shelves or Search Results).
-         * @param {Array<Object>|null} searchResults - Filtered books array if search is active.
-         * @param {string} currentQuery - The current search query string.
-         */
         function renderLibraryContent(searchResults = null, currentQuery = '') {
             const container = document.getElementById('library-sections');
             let shelfSections = [];
@@ -427,9 +469,6 @@
             lucide.createIcons(); 
         }
 
-        /**
-         * Handles the input event on the search bar, filtering and re-rendering the shelves.
-         */
         window.handleSearch = () => {
             const searchInput = document.getElementById('search-input');
             if (!searchInput) return; 
@@ -437,19 +476,16 @@
             const query = searchInput.value.trim().toLowerCase();
             
             if (query.length === 0) {
-                // When search is cleared, revert to default library view
                 renderLibraryContent(null); 
                 return;
             }
             
-            // Filter the global books array
             const filteredBooks = books.filter(book => {
                 const titleMatch = book.title.toLowerCase().includes(query);
                 const authorMatch = book.author.toLowerCase().includes(query);
                 return titleMatch || authorMatch;
             });
             
-            // Render the search results, passing the query so the shelf title is accurate
             renderLibraryContent(filteredBooks, query); 
         }
 
@@ -470,7 +506,7 @@
             `;
             
             // Featured/Trending Shelf
-            const trendingBooks = [books[10], books[1], books[6], books[8], books[3], books[7]]; // Mix of categories
+            const trendingBooks = [books[10], books[1], books[6], books[8], books[3], books[7]]; 
             const trendingShelf = renderShelf("Trending Now", trendingBooks, "View all trends");
 
             // Recommended for You (Simulated)
@@ -500,7 +536,7 @@
                 { id: 20, title: "The Silent Watcher", author: "Anya Sharma", coverUrl: "https://placehold.co/400x600/374151/ffffff?text=Mystery", downloadLink: "#", category: 'fiction' },
                 { id: 21, title: "Quantum Computing Explained", author: "Dr. L. Chen", coverUrl: "https://placehold.co/400x600/059669/ffffff?text=Tech+Guide", downloadLink: "#", category: 'programming' },
                 { id: 22, title: "Culinary History of Rome", author: "E. Rossi", coverUrl: "https://placehold.co/400x600/99f6e4/1f2937?text=Food+History", downloadLink: "#", category: 'history' },
-                ...books.slice(0, 3) // Add a few from the existing list
+                ...books.slice(0, 3) 
             ];
 
             const releasesShelf = newReleases.map(book => renderBookCard(book, 'Buy Now', 'showBuyDetails')).join('');
@@ -528,9 +564,59 @@
             `;
             lucide.createIcons();
         }
+        
+        // --- NEW Helper Function for Naat Download ---
+        window.downloadNaat = (title, url) => {
+            if (url.includes('example.com')) {
+                showNotification(`The download link for "${title}" is a placeholder. Replace 'example.com' with the actual PDF link.`, 'warning');
+                return;
+            }
+            // Opens the provided link in a new tab
+            window.open(url, '_blank');
+            showNotification(`Starting download for "${title}"...`, 'success');
+        }
 
-        window.showBuyDetails = (title) => {
-            showNotification(`Purchase flow started for "${title}".`, 'info');
+        // --- UPDATED Naat Collection Content Function ---
+        function renderNaatContent() {
+            const container = document.getElementById('library-sections');
+            
+            // Mock Naat Poetry/Text Data for Download
+            const naatCollection = [
+                { title: "Kya Bataun Ke Kya Madina Hai (PDF)", artist: "Asad Raza Atari", coverUrl: "images/kya btao ka kya madina hy.jpg", pdfLink: "https://drive.google.com/file/d/1_5k2_m3Sgk9USsD66u1rKo8GOmuiNYob/view?usp=sharing" },
+                { title: "Ay Sabz Gumbad Waly Manzoor  (PDF)", artist: "Owais Raza Qadri", coverUrl: "images/♥♥♥.jpg", pdfLink: "https://drive.google.com/file/d/1eBjnGG-B8KjaTvs5EELfVt1txKiNeSXq/view?usp=sharing" },
+                { title: "Haal e Dil Kisko Sunaye (Urdu)", artist: "Shaikh Abdul Hafiz", coverUrl: "images/download (1).jpg", pdfLink: "https://drive.google.com/file/d/1lFfvmuM4_GGeZwmnQOOuXhn3C0vLkQS6/view?usp=sharing" },
+                { title: "Unki Chokhat Ho Toh Kasa Bhi Pada Sajta Hai (Urdu)", artist: "Mughees Raza Qadri", coverUrl: "images/Unki Chokhat Ho Toh Kasa Bhi Pada Sajta Hai.jpg", pdfLink: "https://drive.google.com/file/d/1AuA-ZDievAZ-5sWTYjxR42DGh9PI_t9K/view?usp=sharing" },
+                { title: "Naat e Rasool (SAW)", artist: "Ahmad", coverUrl: "https://placehold.co/400x600/facc15/1f2937?text=Naat+Poetry+5", pdfLink: "https://example.com/naat_pdf_5.pdf" },
+                { title: "Subhan Allah", artist: "Unknown", coverUrl: "https://placehold.co/400x600/14b8a6/ffffff?text=Naat+Poetry+6", pdfLink: "https://example.com/naat_pdf_6.pdf" },
+            ];
+
+            const naatCards = naatCollection.map(item => `
+                <div class="naat-card-item bg-white rounded-xl shadow-md p-4 transition hover:shadow-lg">
+                    <img src="${item.coverUrl}" alt="${item.title} Image"
+                         class="w-full h-auto object-cover rounded-lg mb-3 shadow-md border border-gray-100"
+                         style="aspect-ratio: 2/3;"
+                         onerror="this.onerror=null;this.src='https://placehold.co/400x600/e0d9cd/5b5b5b?text=Naat+Image';">
+                    
+                    <h4 class="font-semibold text-text-dark truncate mb-1">${item.title}</h4>
+                    <p class="text-sm text-gray-500 mb-3">${item.artist}</p>
+                    
+                    <button onclick="downloadNaat('${item.title.replace(/'/g, "\\'")}', '${item.pdfLink}')"
+                            class="action-btn w-full py-2 flex items-center justify-center text-white text-sm font-semibold rounded-lg transition">
+                        <i data-lucide="download" class="w-4 h-4 mr-2 inline-block"></i>
+                        Download PDF
+                    </button>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <h1 class="text-3xl font-bold mb-8">Naat Collection (Poetry Text)</h1>
+                <p class="text-lg text-text-medium mb-10">Download high-quality PDF files of Naat poetry sheets.</p>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                    ${naatCards}
+                </div>
+            `;
+            lucide.createIcons();
         }
 
         function renderNewsContent() {
@@ -589,7 +675,7 @@
                  renderLibraryContent(); // Renders default library shelves
             } else {
                  pageHeader.classList.add('hidden');
-                 // Render other pages (Home, Shop, News)
+                 // Render other pages (Home, Shop, News, Naat)
                  switch (pageName) {
                     case 'home':
                         renderHomeContent();
@@ -600,10 +686,27 @@
                     case 'news':
                         renderNewsContent();
                         break;
+                    case 'naat':
+                        renderNaatContent();
+                        break;
                  }
             }
 
             lucide.createIcons();
+        }
+        
+        // --- Mobile Toggle Function ---
+        window.toggleSidebar = () => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            sidebar.classList.toggle('active-mobile');
+
+            if (sidebar.classList.contains('active-mobile')) {
+                overlay.style.display = 'block';
+            } else {
+                overlay.style.display = 'none';
+            }
         }
         
         // --- Utility Functions (Notification) ---
@@ -650,32 +753,32 @@
     </script>
 </head>
 <body>
-    <!-- 1. FIXED LEFT SIDEBAR -->
+    <button id="mobile-nav-toggle" onclick="toggleSidebar()">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+    </button>
+    
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
     <aside id="sidebar" class="p-6">
         
-        <!-- Top Section: Logo and Navigation -->
         <div>
-            <!-- Logo: Readowl -->
             <div class="flex items-center mb-10 pl-2">
                 <i data-lucide="book-open-check" class="w-8 h-8 mr-2 text-amber-500"></i>
                 <span class="text-xl font-extrabold text-text-dark">Readowl</span>
             </div>
 
-            <!-- Navigation Links -->
             <nav>
                 <ul class="space-y-2 text-text-medium text-sm">
-                    <!-- Added data-page attributes for easier navigation control -->
                     <li><div class="nav-item active" data-page="home" onclick="changePage('home')"><i data-lucide="home" class="w-5 h-5 mr-3"></i><span>Home</span></div></li>
                     <li><div class="nav-item" data-page="library" onclick="changePage('library')"><i data-lucide="book-open-text" class="w-5 h-5 mr-3"></i><span>My library</span></div></li>
                     <li><div class="nav-item" data-page="shop" onclick="changePage('shop')"><i data-lucide="shopping-bag" class="w-5 h-5 mr-3"></i><span>Shop</span></div></li>
+                    <li><div class="nav-item" data-page="naat" onclick="changePage('naat')"><i data-lucide="headphones" class="w-5 h-5 mr-3"></i><span>Naat Collection</span></div></li>
                     <li><div class="nav-item" data-page="news" onclick="changePage('news')"><i data-lucide="newspaper" class="w-5 h-5 mr-3"></i><span>News</span></div></li>
                 </ul>
             </nav>
         </div>
 
-        <!-- Bottom Section: Continue Reading and Profile/Auth -->
         <div class="pb-4">
-            <!-- Continue Reading Card -->
             <div class="p-3 bg-accent-soft rounded-2xl mb-4 shadow-inner-lg">
                  <h4 class="text-sm font-semibold text-text-dark mb-2">Continue reading</h4>
                  <div class="flex items-center space-x-2">
@@ -687,20 +790,16 @@
                  </div>
             </div>
 
-            <!-- Authentication State -->
-            <!-- 1. Login/Sign Up Button (Visible if not logged in) -->
             <div id="auth-button-container" class="mt-4">
                  <button onclick="openAuthModal('login')" class="w-full action-btn py-2 text-white font-semibold rounded-xl text-sm transition">
                     Login / Sign Up
                  </button>
             </div>
 
-            <!-- 2. User Profile Card (Visible if logged in) -->
             <div id="profile-card" class="flex items-center p-2 rounded-xl hover:bg-gray-50 transition cursor-pointer hidden group relative">
                 <img src="https://placehold.co/40x40/f0e0c9/1f2937?text=U" alt="User Profile" class="w-10 h-10 rounded-full object-cover mr-3 border border-gray-200"/>
                 <div>
                     <span class="text-sm font-medium block" id="profile-name">User ID</span>
-                    <!-- Full UID tooltip/display -->
                     <p id="profile-full-uid" class="text-[10px] text-gray-500 truncate" title="User ID">User ID</p>
                 </div>
                 <button onclick="handleLogout()" class="ml-auto text-red-500 hover:text-red-700 p-1 rounded-full transition">
@@ -710,15 +809,11 @@
         </div>
     </aside>
 
-    <!-- 2. MAIN LIBRARY VIEW (Scrollable) -->
     <main id="main-library">
         
-        <!-- Central Content Wrapper (White Background) -->
         <div class="content-wrapper">
 
-            <!-- STABLE PAGE HEADER: Tabs and Search Bar (Hidden by default, shown only on 'library' page) -->
             <header id="page-header" class="mb-10 hidden">
-                <!-- Tabs -->
                 <div class="flex space-x-4 border-b border-gray-100 mb-6 nav-tabs">
                     <button class="px-4 py-2 text-sm font-semibold border-b-2 border-primary-action text-primary-action">
                         Shelves
@@ -728,24 +823,19 @@
                     </button>
                 </div>
                 
-                <!-- Search Bar -->
                 <div class="search-bar flex items-center bg-gray-50 rounded-xl p-3 border border-gray-100 shadow-inner">
                     <i data-lucide="search" class="w-5 h-5 text-gray-400 mr-3"></i>
-                    <!-- This input is now permanent, ensuring smooth typing and focus -->
                     <input type="text" placeholder="Search in My library (e.g., Python, Jane Doe)" id="search-input"
                            class="w-full bg-transparent focus:outline-none text-text-dark placeholder-gray-400 text-base"
                            oninput="handleSearch()">
                 </div>
             </header>
             
-            <!-- Dynamic Content Area -->
             <div id="library-sections" class="space-y-12">
-                <!-- Page content (Home, Library, Shop, News) will be injected here by JavaScript -->
-            </div>
+                </div>
             
         </div>
 
-        <!-- 3. AUTH MODAL (Hidden by default) -->
         <div id="auth-modal-overlay" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-40 hidden" onclick="closeAuthModal()"></div>
         <div id="auth-modal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
             <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm transform transition-all duration-300">
@@ -780,7 +870,6 @@
             </div>
         </div>
 
-        <!-- 4. Custom Notification/Message Box -->
         <div id="notification"
              class="fixed bottom-6 right-6 text-white px-6 py-3 rounded-xl shadow-2xl font-semibold transition-all duration-500 transform translate-y-full opacity-0 hidden z-50">
             Notification Message
