@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="images/Logo.png">
-    <title>Readowl Read And Download Books</title>
+    <title>Readowl </title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -108,16 +108,24 @@
         }
         
         /* Book Card Styling */
-        .book-card img {
+        .book-card-item {
+            transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+        }
+        
+        .book-card-item:hover {
+            transform: translateY(-4px) scale(1.02);
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
+        }
+        
+        .book-card-item img {
             width: 100%;
-            height: auto;
             border-radius: 0.5rem; 
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
-        .book-card:hover img {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        .book-card-item:hover img {
+            transform: scale(1.03);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
         .book-card-title {
             font-size: 0.75rem;
@@ -126,6 +134,7 @@
             overflow: hidden;
             -webkit-box-orient: vertical;
             margin-bottom: 0.5rem;
+            flex-grow: 1;
         }
         
         /* Action Button */
@@ -135,6 +144,8 @@
         }
         .action-btn:hover {
             background-color: #0d9488;
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(20, 184, 166, 0.25);
         }
 
         /* Manual Horizontal Scrolling Container */
@@ -153,6 +164,15 @@
             width: 110px; 
             margin-right: 24px; 
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .book-card-item img {
+            flex-shrink: 0;
+            height: 160px;
+            object-fit: cover;
         }
         
         /* Mobile Navigation Toggle Button */
@@ -460,10 +480,10 @@
             
             // Mock Naat Poetry/Text Data for Download
             const naatCollection = [
-                { title: "Kya Bataun Ke Kya Madina Hai (PDF)", artist: "Asad Raza Atari", coverUrl: "images/kya btao ka kya madina hy.jpg", pdfLink: "https://drive.google.com/file/d/1_5k2_m3Sgk9USsD66u1rKo8GOmuiNYob/view?usp=sharing" },
-                { title: "Ay Sabz Gumbad Waly Manzoor  (PDF)", artist: "Owais Raza Qadri", coverUrl: "images/♥♥♥.jpg", pdfLink: "https://drive.google.com/file/d/1eBjnGG-B8KjaTvs5EELfVt1txKiNeSXq/view?usp=sharing" },
-                { title: "Haal e Dil Kisko Sunaye (Urdu)", artist: "Shaikh Abdul Hafiz", coverUrl: "images/download (1).jpg", pdfLink: "https://drive.google.com/file/d/1lFfvmuM4_GGeZwmnQOOuXhn3C0vLkQS6/view?usp=sharing" },
-                { title: "Unki Chokhat Ho Toh Kasa Bhi Pada Sajta Hai (Urdu)", artist: "Mughees Raza Qadri", coverUrl: "images/Unki Chokhat Ho Toh Kasa Bhi Pada Sajta Hai.jpg", pdfLink: "https://drive.google.com/file/d/1AuA-ZDievAZ-5sWTYjxR42DGh9PI_t9K/view?usp=sharing" },
+                { title: "Kya Bataun Ke Kya Madina Hai (PDF)", artist: "Asad Raza Atari", coverUrl: "images/Naat/kya btao ka kya madina hy.jpg", pdfLink: "https://drive.google.com/file/d/1_5k2_m3Sgk9USsD66u1rKo8GOmuiNYob/view?usp=sharing" },
+                { title: "Ay Sabz Gumbad Waly Manzoor  (PDF)", artist: "Owais Raza Qadri", coverUrl: "images/Naat/♥♥♥.jpg", pdfLink: "https://drive.google.com/file/d/1eBjnGG-B8KjaTvs5EELfVt1txKiNeSXq/view?usp=sharing" },
+                { title: "Haal e Dil Kisko Sunaye (Urdu)", artist: "Shaikh Abdul Hafiz", coverUrl: "images/Naat/download (1).jpg", pdfLink: "https://drive.google.com/file/d/1lFfvmuM4_GGeZwmnQOOuXhn3C0vLkQS6/view?usp=sharing" },
+                { title: "Unki Chokhat Ho Toh Kasa Bhi Pada Sajta Hai (Urdu)", artist: "Mughees Raza Qadri", coverUrl: "images/Naat/Unki Chokhat Ho Toh Kasa Bhi Pada Sajta Hai.jpg", pdfLink: "https://drive.google.com/file/d/1AuA-ZDievAZ-5sWTYjxR42DGh9PI_t9K/view?usp=sharing" },
                 { title: "Naat e Rasool (SAW)", artist: "Ahmad", coverUrl: "https://placehold.co/400x600/facc15/1f2937?text=Naat+Poetry+5", pdfLink: "https://example.com/naat_pdf_5.pdf" },
                 { title: "Subhan Allah", artist: "Unknown", coverUrl: "https://placehold.co/400x600/14b8a6/ffffff?text=Naat+Poetry+6", pdfLink: "https://example.com/naat_pdf_6.pdf" },
             ];
@@ -626,7 +646,32 @@
             lucide.createIcons(); 
             // The initial page is set to 'home', so we render it and update the sidebar state.
             updateSidebarActiveState('home');
-            renderPageContent('home'); 
+            renderPageContent('home');
+            
+            // Add mouse wheel scrolling to book shelves
+            setupHorizontalScroll();
+        };
+        
+        // Function to enable horizontal scrolling with mouse wheel on book shelves
+        function setupHorizontalScroll() {
+            const shelves = document.querySelectorAll('.book-shelf-container');
+            shelves.forEach(shelf => {
+                shelf.addEventListener('wheel', (e) => {
+                    // Check if the shelf is being hovered
+                    if (e.deltaY !== 0) {
+                        e.preventDefault();
+                        // Scroll horizontally based on vertical wheel movement
+                        shelf.scrollLeft += e.deltaY;
+                    }
+                }, { passive: false });
+            });
+        }
+        
+        // Reinitialize horizontal scroll when page content changes
+        const originalRenderPageContent = window.renderPageContent;
+        window.renderPageContent = (pageName) => {
+            originalRenderPageContent(pageName);
+            setTimeout(setupHorizontalScroll, 100);
         };
 
         

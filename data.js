@@ -15,7 +15,7 @@
 export const shelfDefinitions = {
     // Key is used in the 'category' field of the book object
     'math': {
-        title: "All Class Math Books (Parho.pk)",
+        title: "9th Class Books",
         actionText: "View all math books"
     },
     'programming': {
@@ -40,10 +40,17 @@ export const shelfDefinitions = {
 // Define all the books
 export const books = [
     // --- NEW MATH SHELF ---
-    { id: 16, title: "10th Class New Math Book", author: "Parho.pk", coverUrl: "images/imgi_6_img.png", downloadLink: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", category: 'math' },
-    { id: 1, title: "9th New Math Book", author: "Parho.pk", coverUrl: "images/imgi_6_img.png", downloadLink: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", category: 'math' },
-    { id: 17, title: "8th Class Math Workbook", author: "Parho.pk", coverUrl: "https://placehold.co/400x600/f0e0c9/1f2937?text=Math+8", downloadLink: "#", category: 'math' },
-    { id: 18, title: "7th Class Geometry", author: "Parho.pk", coverUrl: "https://placehold.co/400x600/f0e0c9/1f2937?text=Math+7", downloadLink: "#", category: 'math' },
+    { id: 14, title: "ENGLISH", author: "Parho.pk", coverUrl: "images/9th/English 9.png", downloadLink: "https://drive.google.com/file/d/1HXuFBp3LIUyWaJ39Z6HPH1U5DrbeQ7xB/view?usp=sharing", category: 'math' },
+    { id: 15, title: "MATH ENGLISH", author: "Parho.pk", coverUrl: "images/9th/math EM.png", downloadLink: "https://drive.google.com/file/d/16Y7EOgmjxwJU6MWGtf6_5--SgeHRU0Vn/view?usp=sharing", category: 'math' },
+    { id: 16, title: "MATH URDU", author: "Parho.pk", coverUrl: "images/9th/Math UM.png", downloadLink: "https://drive.google.com/file/d/12i6tUF5AeEbxR5sVFpkexPiim3Z0xKDV/view?usp=sharing", category: 'math' },
+    { id: 18, title: "ISLAMIYAT LAZMI", author: "Parho.pk", coverUrl: "images/9th/islamiyat lazmi 9.png", downloadLink: "https://drive.google.com/file/d/1x2VClQFrdC8jB0y8wspfDNju-DlO84a8/view?usp=sharing", category: 'math' },
+    { id: 19, title: "URDU", author: "Parho.pk", coverUrl: "images/9th/Urdu 9.png", downloadLink: "https://drive.google.com/file/d/1VUM77NgqlwrQWfil5h28UpxqjtFZdZnS/view?usp=sharing", category: 'math' },
+    { id: 20, title: "PHYSICS", author: "Parho.pk", coverUrl: "images/9th/Physics 9.png", downloadLink: "https://drive.google.com/file/d/1B2cO6kQKepCyVaVkzuSqv2hbItTVRYn6/view?usp=sharing", category: 'math' },
+    { id: 21, title: "BIOLOGY", author: "Parho.pk", coverUrl: "images/9th/Biology 9.png", downloadLink: "https://drive.google.com/file/d/1A3GRSijZ24wPoimt0-rIibEeX8H9AJu4/view?usp=sharing", category: 'math' },
+    { id: 22, title: "CHEMISTRY", author: "Parho.pk", coverUrl: "images/9th/Chemistry 9.png", downloadLink: "https://drive.google.com/file/d/1eUw_66z6UXF-5vXS9d2Hvc_O5jNJEqTD/view?usp=sharing", category: 'math' },
+    { id: 23, title: "COMPUTER SCIENCE", author: "Parho.pk", coverUrl: "images/9th/CS 9.png", downloadLink: "https://drive.google.com/file/d/1-MFUR7mjHmz4UVwi57X07pMFqy-qunXs/view?usp=sharing", category: 'math' },
+    { id: 24, title: "TARJUMATUL QURAN", author: "Parho.pk", coverUrl: "images/9th/TQ 9.png", downloadLink: "https://drive.google.com/file/d/1g-XpnrTmORXwmg8WY9NOjo9sJ8h5AQoe/view?usp=sharing", category: 'math' },
+    
     
     // --- PROGRAMMING SHELF ---
     { id: 2, title: "The Art of Clear JavaScript", author: "Jane Doe", coverUrl: "https://placehold.co/400x600/facc15/1f2937?text=JavaScript", downloadLink: "#", category: 'programming' },
