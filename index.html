@@ -12,7 +12,7 @@
         /* --- Custom styles to match the Soft Cream/Neomorphic app theme --- */
         :root {
             /* Soft background and main content colors from the image */
-            --bg-soft: #fdfcfb; 
+            --bg-soft: #d3f5f2; /* Soft Cream*/
             --card-light: #ffffff;
             --accent-soft: #f0e0c9; /* Soft tan/gold for selection state */
             --primary-action: #14b8a6; /* Teal for high-contrast actions (Download/Action) */
@@ -204,147 +204,15 @@
     </style>
     
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit, serverTimestamp, getDocs, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // Import the separated data file
+        import { books, shelfDefinitions } from './data.js';
 
-        // Setup Firebase and global variables
-        setLogLevel('Debug');
-        
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // NOTE: Firebase imports, initialization, and auth listeners have been REMOVED.
+        // The application runs purely client-side without a persistent login system.
 
-        let app;
-        let db;
-        let auth;
-        let userId = null;
-        let isAuthReady = false;
         let currentPage = 'home'; // Default page is 'home'
-
-        // Initialize Firebase
-        if (Object.keys(firebaseConfig).length > 0) {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-        } else {
-            console.error("Firebase configuration is missing.");
-        }
-
-        // Authentication State Listener
-        if (auth) {
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid;
-                    document.getElementById('profile-name').textContent = userId.substring(0, 8); // Show short UID
-                    document.getElementById('profile-full-uid').textContent = userId; // Show full UID on hover
-                    document.getElementById('auth-button-container').classList.add('hidden');
-                    document.getElementById('profile-card').classList.remove('hidden');
-                } else {
-                    userId = null;
-                    document.getElementById('auth-button-container').classList.remove('hidden');
-                    document.getElementById('profile-card').classList.add('hidden');
-                }
-                isAuthReady = true;
-                renderPageContent(currentPage);
-            });
-
-            // Initial sign-in attempt
-            (async () => {
-                try {
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                } catch (error) {
-                    console.error("Firebase sign-in failed:", error);
-                    showNotification(`Authentication failed: ${error.message}`, 'error');
-                }
-            })();
-        }
-
-        // --- Auth Modal Handlers (omitted for brevity) ---
-
-        window.openAuthModal = (mode) => {
-            document.getElementById('auth-mode').textContent = mode === 'login' ? 'Log In' : 'Sign Up';
-            document.getElementById('auth-submit-btn').textContent = mode === 'login' ? 'Log In' : 'Sign Up';
-            document.getElementById('auth-switch-link').textContent = mode === 'login' ? 'Need an account? Sign Up' : 'Already have an account? Log In';
-            document.getElementById('auth-switch-link').onclick = () => window.openAuthModal(mode === 'login' ? 'signup' : 'login');
-            document.getElementById('auth-submit-btn').dataset.mode = mode;
-            document.getElementById('auth-modal').classList.remove('hidden');
-            document.getElementById('auth-modal-overlay').classList.remove('hidden');
-        }
-
-        window.closeAuthModal = () => {
-            document.getElementById('auth-modal').classList.add('hidden');
-            document.getElementById('auth-modal-overlay').classList.add('hidden');
-        }
-
-        window.handleAuthSubmit = async () => {
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            const mode = document.getElementById('auth-submit-btn').dataset.mode;
-
-            if (!email || !password) {
-                showNotification("Please enter both email and password.", 'warning');
-                return;
-            }
-
-            try {
-                if (mode === 'signup') {
-                    await createUserWithEmailAndPassword(auth, email, password);
-                    showNotification("Sign Up successful! You are now logged in.", 'success');
-                } else {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    showNotification("Log In successful!", 'success');
-                }
-                window.closeAuthModal();
-            } catch (error) {
-                console.error("Auth error:", error);
-                showNotification(`Authentication Failed: ${error.message.replace('Firebase: ', '')}`, 'error');
-            }
-        }
         
-        window.handleLogout = async () => {
-             if (auth) {
-                try {
-                    await signOut(auth);
-                    showNotification("Logged out successfully.", 'success');
-                } catch (error) {
-                    console.error("Logout error:", error);
-                    showNotification(`Logout failed: ${error.message}`, 'error');
-                }
-            }
-        }
-
-        // --- Book Data ---
-
-        const books = [
-            // Programming Shelf 
-            { id: 1, title: "9th New Math Book", author: "Parho.pk", coverUrl: "images/imgi_6_img.png", downloadLink: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", category: 'programming' },
-            { id: 2, title: "The Art of Clear JavaScript", author: "Jane Doe", coverUrl: "https://placehold.co/400x600/facc15/1f2937?text=JavaScript", downloadLink: "#", category: 'programming' },
-            { id: 3, title: "Deep Learning with Python", author: "Cal Newport", coverUrl: "https://placehold.co/400x600/06b6d4/ffffff?text=Python+DL", downloadLink: "#", category: 'programming' },
-            { id: 4, title: "UX Strategy Fundamentals", author: "R. A. Smith", coverUrl: "https://placehold.co/400x600/3d3d3d/ffffff?text=UX+Design", downloadLink: "#", category: 'programming' },
-            { id: 5, title: "C# Design Patterns", author: "M. K. Patel", coverUrl: "https://placehold.co/400x600/ef4444/ffffff?text=C%23+Patterns", downloadLink: "#", category: 'programming' },
-            
-            // Fiction Shelf
-            { id: 6, title: "Lord of the Rings: Fellowship", author: "J.R.R. Tolkien", coverUrl: "https://placehold.co/400x600/6b7280/ffffff?text=Fantasy", downloadLink: "#", category: 'fiction' },
-            { id: 7, title: "1984 by George Orwell", author: "George Orwell", coverUrl: "https://placehold.co/400x600/ef4444/ffffff?text=Dystopian", downloadLink: "#", category: 'fiction' },
-            { id: 8, title: "Dune", author: "Frank Herbert", coverUrl: "https://placehold.co/400x600/22c55e/ffffff?text=Sci-Fi", downloadLink: "#", category: 'fiction' },
-            { id: 9, title: "The Martian", author: "Andy Weir", coverUrl: "https://placehold.co/400x600/f97316/ffffff?text=Sci-Fi", downloadLink: "#", category: 'fiction' },
-            { id: 10, title: "Pride and Prejudice", author: "Jane Austen", coverUrl: "https://placehold.co/400x600/0284c7/ffffff?text=Classic", downloadLink: "#", category: 'fiction' },
-
-            // History Shelf
-            { id: 11, title: "Brief History of Time", author: "S. Hawking", coverUrl: "https://placehold.co/400x600/1f2937/ffffff?text=History", downloadLink: "#", category: 'history' },
-            { id: 12, title: "Sapiens: A Brief History", author: "Yuval Noah Harari", coverUrl: "https://placehold.co/400x600/0284c7/ffffff?text=History", downloadLink: "#", category: 'history' },
-            { id: 13, title: "World War II Atlas", author: "D. Airey", coverUrl: "https://placehold.co/400x600/94a3b8/ffffff?text=War+History", downloadLink: "#", category: 'history' },
-            { id: 14, title: "The Age of Exploration", author: "M. Manson", coverUrl: "https://placehold.co/400x600/1f2937/ffffff?text=Exploration", downloadLink: "#", category: 'history' },
-            { id: 15, title: "The Ottoman Empire", author: "W. McKinney", coverUrl: "https://placehold.co/400x600/0284c7/ffffff?text=Ottoman", downloadLink: "#", category: 'history' },
-        ];
-        
-        // Groups books by their category
+        // Groups books by their category for easy shelf rendering
         const groupedBooks = books.reduce((acc, book) => {
             acc[book.category] = acc[book.category] || [];
             acc[book.category].push(book);
@@ -443,6 +311,9 @@
 
         // --- Content Rendering Functions for Each Page ---
 
+        /**
+         * Renders the Library content, either default shelves or search results.
+         */
         function renderLibraryContent(searchResults = null, currentQuery = '') {
             const container = document.getElementById('library-sections');
             let shelfSections = [];
@@ -456,12 +327,14 @@
                 }
 
             } else {
-                // --- Default Library mode ---
-                shelfSections = [
-                    renderShelf("Programming & Tech", groupedBooks.programming || []),
-                    renderShelf("Fiction & Classics", groupedBooks.fiction || []),
-                    renderShelf("History & Science", groupedBooks.history || [])
-                ];
+                // --- Default Library mode (Dynamically generates shelves from data.js) ---
+                // Iterate through the keys in shelfDefinitions to render each shelf
+                for (const categoryKey in shelfDefinitions) {
+                    const shelf = shelfDefinitions[categoryKey];
+                    const booksForShelf = groupedBooks[categoryKey] || [];
+                    
+                    shelfSections.push(renderShelf(shelf.title, booksForShelf, shelf.actionText));
+                }
             }
             
             // Render the title and the dynamic shelves
@@ -492,25 +365,25 @@
         function renderHomeContent() {
             const container = document.getElementById('library-sections');
             
-            // Welcome Banner
+            // Welcome Banner with custom hex color #d3f5f2 and updated text colors
             const welcomeBanner = `
-                <div class="bg-primary-action text-white p-6 rounded-2xl mb-12 shadow-lg">
+                <div class="bg-[#d3f5f2] text-gray-800 p-6 rounded-2xl mb-12 shadow-lg">
                     <div class="flex items-center">
-                        <i data-lucide="sparkles" class="w-8 h-8 mr-4"></i>
+                        <i data-lucide="sparkles" class="w-8 h-8 mr-4 text-primary-action"></i>
                         <div>
-                            <h2 class="text-2xl font-bold">Welcome back, Reader!</h2>
-                            <p class="text-sm opacity-90 mt-1">Discover new titles or dive back into your favorites.</p>
+                            <h2 class="text-2xl font-bold">Welcome back, Friends!</h2>
+                            <p class="text-sm opacity-80 mt-1 text-gray-700">Read And Download The Books You Want For Free!</p>
                         </div>
                     </div>
                 </div>
             `;
             
-            // Featured/Trending Shelf
-            const trendingBooks = [books[10], books[1], books[6], books[8], books[3], books[7]]; 
+            // Featured/Trending Shelf (Simulated using existing book data)
+            const trendingBooks = [books[10], books[1], books[6], books[8], books[3], books[7]].filter(Boolean); // Use filter(Boolean) to remove any undefined if array is shorter
             const trendingShelf = renderShelf("Trending Now", trendingBooks, "View all trends");
 
-            // Recommended for You (Simulated)
-            const recommendedBooks = [books[5], books[9], books[14], books[2], books[11]];
+            // Recommended for You (Simulated using existing book data)
+            const recommendedBooks = [books[5], books[9], books[14], books[2], books[11]].filter(Boolean);
             const recommendedShelf = renderShelf("Recommended for You", recommendedBooks, "Customize recommendations");
 
             container.innerHTML = `
@@ -522,6 +395,10 @@
             lucide.createIcons();
         }
 
+        window.showBuyDetails = (title) => {
+             showNotification(`Simulating purchase details for "${title}".`, 'info');
+        }
+
         function renderShopContent() {
             const container = document.getElementById('library-sections');
             
@@ -531,7 +408,7 @@
                 <p class="text-lg text-text-medium mb-10">Browse our latest releases and bestselling collections.</p>
             `;
             
-            // New Releases (using a new set of data just for the shop feel)
+            // New Releases (using a mix of existing and mock data)
             const newReleases = [
                 { id: 20, title: "The Silent Watcher", author: "Anya Sharma", coverUrl: "https://placehold.co/400x600/374151/ffffff?text=Mystery", downloadLink: "#", category: 'fiction' },
                 { id: 21, title: "Quantum Computing Explained", author: "Dr. L. Chen", coverUrl: "https://placehold.co/400x600/059669/ffffff?text=Tech+Guide", downloadLink: "#", category: 'programming' },
@@ -782,43 +659,13 @@
                 <ul class="space-y-2 text-text-medium text-sm">
                     <li><div class="nav-item active" data-page="home" onclick="changePage('home')"><i data-lucide="home" class="w-5 h-5 mr-3"></i><span>Home</span></div></li>
                     <li><div class="nav-item" data-page="library" onclick="changePage('library')"><i data-lucide="book-open-text" class="w-5 h-5 mr-3"></i><span>My library</span></div></li>
-                    <li><div class="nav-item" data-page="shop" onclick="changePage('shop')"><i data-lucide="shopping-bag" class="w-5 h-5 mr-3"></i><span>Shop</span></div></li>
                     <li><div class="nav-item" data-page="naat" onclick="changePage('naat')"><i data-lucide="headphones" class="w-5 h-5 mr-3"></i><span>Naat Collection</span></div></li>
                     <li><div class="nav-item" data-page="news" onclick="changePage('news')"><i data-lucide="newspaper" class="w-5 h-5 mr-3"></i><span>News</span></div></li>
                 </ul>
             </nav>
         </div>
 
-        <div class="pb-4">
-            <div class="p-3 bg-accent-soft rounded-2xl mb-4 shadow-inner-lg">
-                 <h4 class="text-sm font-semibold text-text-dark mb-2">Continue reading</h4>
-                 <div class="flex items-center space-x-2">
-                    <img src="https://placehold.co/400x600/14b8a6/ffffff?text=UX+Design" alt="Book Cover" class="w-8 h-12 object-cover rounded-md shadow-md"/>
-                    <div>
-                        <p class="text-xs font-medium text-text-dark leading-tight">UX Strategy...</p>
-                        <p class="text-[10px] text-gray-600">Chapter 5 - 45% done</p>
-                    </div>
-                 </div>
-            </div>
-
-            <div id="auth-button-container" class="mt-4">
-                 <button onclick="openAuthModal('login')" class="w-full action-btn py-2 text-white font-semibold rounded-xl text-sm transition">
-                    Login / Sign Up
-                 </button>
-            </div>
-
-            <div id="profile-card" class="flex items-center p-2 rounded-xl hover:bg-gray-50 transition cursor-pointer hidden group relative">
-                <img src="https://placehold.co/40x40/f0e0c9/1f2937?text=U" alt="User Profile" class="w-10 h-10 rounded-full object-cover mr-3 border border-gray-200"/>
-                <div>
-                    <span class="text-sm font-medium block" id="profile-name">User ID</span>
-                    <p id="profile-full-uid" class="text-[10px] text-gray-500 truncate" title="User ID">User ID</p>
-                </div>
-                <button onclick="handleLogout()" class="ml-auto text-red-500 hover:text-red-700 p-1 rounded-full transition">
-                    <i data-lucide="log-out" class="w-5 h-5"></i>
-                </button>
-            </div>
-        </div>
-    </aside>
+        </aside>
 
     <main id="main-library">
         
@@ -828,9 +675,6 @@
                 <div class="flex space-x-4 border-b border-gray-100 mb-6 nav-tabs">
                     <button class="px-4 py-2 text-sm font-semibold border-b-2 border-primary-action text-primary-action">
                         Shelves
-                    </button>
-                    <button class="px-4 py-2 text-sm text-gray-500 hover:text-text-dark transition">
-                        All Books
                     </button>
                 </div>
                 
@@ -845,40 +689,6 @@
             <div id="library-sections" class="space-y-12">
                 </div>
             
-        </div>
-
-        <div id="auth-modal-overlay" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-40 hidden" onclick="closeAuthModal()"></div>
-        <div id="auth-modal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
-            <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm transform transition-all duration-300">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 id="auth-mode" class="text-2xl font-bold">Log In</h3>
-                    <button onclick="closeAuthModal()" class="text-gray-400 hover:text-text-dark transition">
-                        <i data-lucide="x" class="w-6 h-6"></i>
-                    </button>
-                </div>
-                
-                <form onsubmit="event.preventDefault(); handleAuthSubmit();">
-                    <div class="mb-4">
-                        <label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" id="auth-email" placeholder="user@example.com"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-action focus:border-primary-action" required>
-                    </div>
-                    <div class="mb-6">
-                        <label for="auth-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input type="password" id="auth-password" placeholder="Min 6 characters"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-action focus:border-primary-action" required>
-                    </div>
-                    
-                    <button type="submit" id="auth-submit-btn" data-mode="login" 
-                            class="action-btn w-full py-2.5 text-white font-semibold rounded-xl text-lg transition">
-                        Log In
-                    </button>
-                    
-                    <div class="text-center mt-4">
-                        <a href="#" id="auth-switch-link" onclick="openAuthModal('signup')" class="text-sm text-primary-action hover:underline">Need an account? Sign Up</a>
-                    </div>
-                </form>
-            </div>
         </div>
 
         <div id="notification"
